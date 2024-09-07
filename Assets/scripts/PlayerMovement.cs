@@ -4,45 +4,53 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     private Rigidbody2D Body;
+    private Animator anim;
     public float speed;
-    
-    public bool isJumping;
+    private bool grounded;
+  
 
     private void Awake()
-    {
+    { 
+      
         Body = GetComponent<Rigidbody2D>();
+        anim = GetComponent<Animator>();
     }
     
 
     private void Update ()
     {
+        float horizontalInput = Input.GetAxis("Horizontal");
         Body.velocity = new Vector2(Input.GetAxis("Horizontal") * speed,Body.velocity.y);
 
-
-
-
-        if (Input.GetKey(KeyCode.Space) && isJumping == false)
+        if(horizontalInput > 0.01f)
         {
-            Body.velocity = new Vector2(Body.velocity.x, speed);
+            transform.localScale = Vector3.one; 
+        }
+        else if (horizontalInput < -0.01f)
+        {
+            transform.localScale = new Vector3(-1, 1, 1);
+        }
+        if (Input.GetKey(KeyCode.Space) && grounded )
+        {
+            Jump();
          
         }
-    }
-    private void OnCollisionEnter2D(Collision2D other)
-    {
-        if (other.gameObject.CompareTag("Ground"))
-        {
-            isJumping = false;
-        }
+        anim.SetBool("Run", horizontalInput != 0);
+        anim.SetBool("grounded", grounded);
     }
 
-    private void OnCollisionExit2D(Collision2D other)
+private void Jump()
     {
-        if (other.gameObject.CompareTag("Ground"))
-        {
-            isJumping = true;
-        }
+        Body.velocity = new Vector2(Body.velocity.x, speed);
+            anim.SetTrigger("Jump");
+        grounded = false;
     }
 
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "Ground");
+        grounded = true;
+    }
 
 
 
