@@ -4,55 +4,72 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     private Rigidbody2D Body;
-    private Animator anim;
     public float speed;
-    private bool grounded;
-  
-
-    private void Awake()
-    { 
-      
-        Body = GetComponent<Rigidbody2D>();
-        anim = GetComponent<Animator>();
-    }
+    public LayerMask groundLayer;
+    public LayerMask wallLayer;
+    private Animator anim;
+    private BoxCollider2D boxcollider;
     
 
-    private void Update ()
+
+
+    private void Awake()
+    {
+        // refernece  to rigidbody and animator from object
+        Body = GetComponent<Rigidbody2D>();
+        anim = GetComponent<Animator>();
+        boxcollider = GetComponent<BoxCollider2D>();
+
+    }
+
+
+    private void Update()
     {
         float horizontalInput = Input.GetAxis("Horizontal");
-        Body.velocity = new Vector2(Input.GetAxis("Horizontal") * speed,Body.velocity.y);
+        Body.velocity = new Vector2(Input.GetAxis("Horizontal") * speed, Body.velocity.y);
 
-        if(horizontalInput > 0.01f)
+        if (horizontalInput > 0.01f)
         {
-            transform.localScale = Vector3.one; 
+            transform.localScale = Vector3.one;
         }
         else if (horizontalInput < -0.01f)
         {
             transform.localScale = new Vector3(-1, 1, 1);
         }
-        if (Input.GetKey(KeyCode.Space) && grounded )
+        if (Input.GetKey(KeyCode.Space) && isGrounded())
         {
             Jump();
-         
+
         }
-        anim.SetBool("Run", horizontalInput != 0);
-        anim.SetBool("grounded", grounded);
+
+        //set animator parameters
+        anim.SetBool("run", horizontalInput != 0);
+        anim.SetBool("grounded", isGrounded());
+
+        print(onWall());
+
     }
 
-private void Jump()
+    private void Jump()
     {
         Body.velocity = new Vector2(Body.velocity.x, speed);
-            anim.SetTrigger("Jump");
-        grounded = false;
+        anim.SetTrigger("jump");
+      
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+  
+
+    private bool isGrounded()
     {
-        if (collision.gameObject.tag == "Ground");
-        grounded = true;
+        RaycastHit2D raycastHit = Physics2D.BoxCast(boxcollider.bounds.center, boxcollider.bounds.size, 0, Vector2.down, 0.1f, groundLayer);
+        return raycastHit.collider != null;
     }
 
-
+    private bool onWall()
+    {
+        RaycastHit2D raycastHit = Physics2D.BoxCast(boxcollider.bounds.center, boxcollider.bounds.size, 0, new Vector2(transform.localScale.x, 0), 0.1f, wallLayer);
+        return raycastHit.collider != null;
+    }
 
 
 }
